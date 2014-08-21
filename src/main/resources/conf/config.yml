@@ -1,0 +1,10 @@
+# List of gearman servers
+servers:
+  - hostName: "192.168.56.5"
+    port: 4730
+    userName: ""
+    password: ""
+
+# Make sure the metric prefix ends with a |
+
+metricPrefix: "Custom Metrics|Gearman|"
