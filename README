@@ -31,7 +31,6 @@ Please make sure to not use tab (\t) while editing yaml files. You may want to v
 
 1. Configure the gearman server instances by editing the config.yaml file in `<MACHINE_AGENT_HOME>/monitors/GearmanMonitor/`. Below is the format
 
-  ```
   servers:
     - hostName: "192.168.56.5"
       port: 4730
@@ -43,10 +42,9 @@ metricPrefix: "Custom Metrics|Gearman|"
 
 2. Configure the path to the config.yaml file by editing the <task-arguments> in the monitor.xml file. Below is the sample
 
-     ```
      <task-arguments>
          <!-- config file-->
-                    <argument name="config-file" is-required="true" default-value="monitors/GearmanMonitor/config.yml" />
+            <argument name="config-file" is-required="true" default-value="monitors/GearmanMonitor/config.yml" />
           ....
      </task-arguments>
 
