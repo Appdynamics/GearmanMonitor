@@ -1,0 +1,71 @@
+gearman-monitoring-extension
+==============================
+An AppDynamics extension to be used with a stand alone Java machine agent to provide metrics from gearman server.
+
+## Metrics Provided ##
+
+We provide metric related to following gearman server command
+
+﻿Command: STATUS
+
+The output format of this function is tab separated columns as follows, followed by a line consisting of a full stop and a newline (”.n”) to indicate the end of output, below are the columns shown:
+
+- Function name : A string denoting the name of the function of the job
+- Number in queue : A positive integer indicating the total number of jobs for this function in the queue. This includes currently running ones as well (next column)
+- Number of jobs running : A positive integer showing how many jobs of this function are currently running
+- Number of capable workers : A positive integer denoting the maximum possible count of workers that could be doing this job. Though they may not all be working on it due to other tasks holding them busy.
+
+    Notification    1    0    1
+    GroupNews       2    1    1
+
+## Installation ##
+
+1. Download and unzip GearmanMonitor.zip from AppSphere.
+2. Copy the GearmanMonitor directory to `<MACHINE_AGENT_HOME>/monitors`.
+
+
+## Configuration ##
+
+###Note
+Please make sure to not use tab (\t) while editing yaml files. You may want to validate the yaml file using a yaml validator http://yamllint.com/
+
+1. Configure the gearman server instances by editing the config.yaml file in `<MACHINE_AGENT_HOME>/monitors/GearmanMonitor/`. Below is the format
+
+  ```
+  servers:
+    - hostName: "192.168.56.5"
+      port: 4730
+      userName: ""
+      password: ""
+
+metricPrefix: "Custom Metrics|Gearman|"
+
+
+2. Configure the path to the config.yaml file by editing the <task-arguments> in the monitor.xml file. Below is the sample
+
+     ```
+     <task-arguments>
+         <!-- config file-->
+                    <argument name="config-file" is-required="true" default-value="monitors/GearmanMonitor/config.yml" />
+          ....
+     </task-arguments>
+
+## Contributing ##
+
+Always feel free to fork and contribute any changes directly via [GitHub][].
+
+## Community ##
+
+Find out more in the [Community][].
+
+## Support ##
+
+For any questions or feature request, please contact [AppDynamics Center of Excellence][].
+
+**Version:** 1.0
+**Controller Compatibility:** 3.7 or later
+**Gearman Version Tested On:** 1.1.2
+
+[GitHub]: https://github.com/Appdynamics/gearman-monitoring-extension
+[Community]: http://community.appdynamics.com/
+[AppDynamics Center of Excellence]: mailto:ace-request@appdynamics.com
