@@ -5,6 +5,7 @@ import com.appdynamics.extensions.gearman.config.ConfigUtil;
 import com.appdynamics.extensions.gearman.config.Configuration;
 import com.appdynamics.extensions.gearman.config.Server;
 import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
 import com.singularity.ee.agent.systemagent.api.MetricWriter;
 import com.singularity.ee.agent.systemagent.api.TaskExecutionContext;
@@ -42,7 +43,7 @@ public class GearmanMonitor extends AManagedMonitor {
      * @throws TaskExecutionException
      */
     public TaskOutput execute(Map<String, String> taskArguments, TaskExecutionContext taskContext) throws TaskExecutionException {
-        if (taskArguments != null) {
+        if (taskArguments != null && !taskArguments.isEmpty()) {
             setLogPrefix(taskArguments.get(LOG_PREFIX));
             logger.info("Using Monitor Version [" + getImplementationVersion() + "]");
             logger.info(getLogPrefix() + "Starting the Gearman Monitoring task.");
@@ -80,7 +81,15 @@ public class GearmanMonitor extends AManagedMonitor {
         // loop through the servers
         try {
             for (Server server : config.getServers()) {
-                TelnetUtil telnet = new TelnetUtil(server.getHostName(), server.getPort(), server.getUserName(), server.getPassword());
+
+                Map<String, String> gearmanServerMap = Maps.newHashMap();
+                gearmanServerMap.put("host", server.getHostName());
+                gearmanServerMap.put("port", server.getPort());
+                gearmanServerMap.put("user", server.getUserName());
+                gearmanServerMap.put("password", server.getPassword());
+
+                SimpleTelnetClient telnet = buildTelnetClient(gearmanServerMap);
+                telnet.connect();
                 logger.info("Got Connection to gearman server");
                 String result = telnet.sendCommand("STATUS");
                 logger.debug("Results from the server: " + result);
@@ -122,6 +131,10 @@ public class GearmanMonitor extends AManagedMonitor {
         return listOfMetricPerFunction;
     }
 
+    public SimpleTelnetClient buildTelnetClient(Map<String, String> gearmanServerMap) {
+        return SimpleTelnetClient.newInstance(gearmanServerMap);
+    }
+
     private void printMetric(List<GearmanMetric> listOfMetricPerFunction) {
         for (GearmanMetric metric : listOfMetricPerFunction) {
             StringBuffer metricPath = new StringBuffer();
@@ -139,9 +152,9 @@ public class GearmanMonitor extends AManagedMonitor {
 
     private void printCollectiveObservedCurrent(String metricPath, String metricValue) {
         printMetric(metricPath, metricValue,
-                MetricWriter.METRIC_AGGREGATION_TYPE_OBSERVATION,
-                MetricWriter.METRIC_TIME_ROLLUP_TYPE_CURRENT,
-                        MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_COLLECTIVE
+                MetricWriter.METRIC_AGGREGATION_TYPE_AVERAGE,
+                MetricWriter.METRIC_TIME_ROLLUP_TYPE_AVERAGE,
+                MetricWriter.METRIC_CLUSTER_ROLLUP_TYPE_INDIVIDUAL
         );
     }
 
@@ -154,7 +167,7 @@ public class GearmanMonitor extends AManagedMonitor {
      * @param timeRollupType
      * @param clusterRollupType
      */
-    private void printMetric(String metricPath, String metricValue, String aggType, String timeRollupType, String clusterRollupType) {
+    public void printMetric(String metricPath, String metricValue, String aggType, String timeRollupType, String clusterRollupType) {
         MetricWriter metricWriter = getMetricWriter(metricPath,
                 aggType,
                 timeRollupType,
@@ -217,14 +230,6 @@ public class GearmanMonitor extends AManagedMonitor {
 
     private static String getImplementationVersion() {
         return GearmanMonitor.class.getPackage().getImplementationTitle();
-    }
-
-    public static void main(String[] args) throws Exception {
-        GearmanMonitor monitor = new GearmanMonitor();
-        Map<String, String> taskArgs = new HashMap();
-        taskArgs.put(CONFIG_ARG, "src/main/resources/conf/config.yml");
-        TaskExecutionContext context = null;
-        monitor.execute(taskArgs, context);
     }
 
 }

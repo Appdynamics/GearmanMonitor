@@ -1,24 +1,30 @@
 package com.appdynamics.extensions.gearman;
 
 import com.google.common.base.Strings;
+import com.sun.javaws.exceptions.InvalidArgumentException;
 import org.apache.commons.net.telnet.TelnetClient;
 import org.apache.log4j.Logger;
 
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.Map;
 
 /**
  * Created by abhi.pandey on 8/12/14.
  */
 
-public class TelnetUtil {
+public class SimpleTelnetClient {
     public static final Logger logger = Logger.getLogger(GearmanMonitor.class);
     private TelnetClient telnet = new TelnetClient();
     private InputStream in;
     private PrintStream out;
     private static final String prompt = "\n.";
+    private String server;
+    private String port;
+    private String user;
+    private String password;
 
-    public TelnetUtil(String server, String port, String user, String password) {
+    public void connect() {
         try {
             // Connect to the specified server
             telnet.connect(server, Integer.parseInt(port));
@@ -78,6 +84,61 @@ public class TelnetUtil {
         } catch (Exception e) {
             logger.error("Can't able to disconnect from telnet server!" + e);
         }
+    }
+
+    public static SimpleTelnetClient newInstance(Map<String, String> argsMap) {
+        try {
+            if(!argsMap.containsKey("host")){
+                throw new RuntimeException("host key doesn't exist in map");
+            }
+
+            if(!argsMap.containsKey("port")){
+                throw new RuntimeException("port key doesn't exist in map");
+            }
+
+            return new SimpleTelnetClient.Builder(argsMap.get("host"), argsMap.get("port")).
+                    user(argsMap.get("user")).password(argsMap.get("password")).build();
+        }catch (Exception e){
+            logger.error("Inputted argument map is not in valid format"+ e);
+        }
+        return null;
+    }
+
+    public static class Builder {
+
+        //Required parameter
+        private String server;
+        private String port;
+
+        // Optional parameter - initialized to default value
+        private String user = "";
+        private String password = "";
+
+        public Builder(String server, String port) {
+            this.server = server;
+            this.port = port;
+        }
+
+        public Builder user(String val) {
+            user = val;
+            return this;
+        }
+
+        public Builder password(String val) {
+            password = val;
+            return this;
+        }
+
+        public SimpleTelnetClient build() {
+            return new SimpleTelnetClient(this);
+        }
+    }
+
+    private SimpleTelnetClient(Builder builder) {
+        server = builder.server;
+        port = builder.port;
+        user = builder.user;
+        password = builder.password;
     }
 
 }

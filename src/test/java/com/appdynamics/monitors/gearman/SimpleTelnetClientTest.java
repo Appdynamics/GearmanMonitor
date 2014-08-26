@@ -1,21 +1,30 @@
 package com.appdynamics.monitors.gearman;
 
-import com.appdynamics.extensions.gearman.TelnetUtil;
+import com.appdynamics.extensions.gearman.SimpleTelnetClient;
+import com.google.common.collect.Maps;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Map;
+
 /**
  * Created by abhi.pandey on 8/18/14.
  */
-public class TelnetUtilTest {
+public class SimpleTelnetClientTest {
     @Test
     public void testSQLMonitor() throws TaskExecutionException {
         try {
-            TelnetUtil telnet = new TelnetUtil("192.168.56.5", "4730", "", "");
+            Map<String, String> gearmanServerMap = Maps.newHashMap();
+            gearmanServerMap.put("host", "192.168.56.5");
+            gearmanServerMap.put("port", "4730");
+            gearmanServerMap.put("user", "");
+            gearmanServerMap.put("password", "");
+            SimpleTelnetClient telnet = SimpleTelnetClient.newInstance(gearmanServerMap);
             String expected = "wc\t0\t0\t2\n" +
                     "ls\t2\t0\t0\n" +
                     ".";
+            telnet.connect();
             String value = telnet.sendCommand("STATUS");
             Assert.assertEquals(expected, value);
             telnet.disconnect();
