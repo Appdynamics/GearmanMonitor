@@ -1,9 +1,9 @@
 package com.appdynamics.extensions.gearman;
 
 import com.appdynamics.extensions.PathResolver;
-import com.appdynamics.extensions.gearman.config.ConfigUtil;
 import com.appdynamics.extensions.gearman.config.Configuration;
 import com.appdynamics.extensions.gearman.config.Server;
+import com.appdynamics.extensions.yml.YmlReader;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
@@ -13,8 +13,6 @@ import com.singularity.ee.agent.systemagent.api.TaskOutput;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.*;
 
 import org.apache.log4j.Logger;
@@ -30,8 +28,6 @@ public class GearmanMonitor extends AManagedMonitor {
     public static final String LOG_PREFIX = "log-prefix";
     private static String logPrefix;
     public static final String METRIC_SEPARATOR = "|";
-    //To load the config files
-    private final static ConfigUtil<Configuration> configUtil = new ConfigUtil<Configuration>();
     private List<GearmanMetric> listOfMetricPerFunction;
 
     /**
@@ -56,7 +52,7 @@ public class GearmanMonitor extends AManagedMonitor {
 
             try {
                 //read the config.
-                Configuration config = configUtil.readConfig(configFilename, Configuration.class);
+                Configuration config = YmlReader.readFromFile(configFilename, Configuration.class);
 
                 // no point continuing if we don't have this
                 if (config.getServers().isEmpty()) {
@@ -65,10 +61,8 @@ public class GearmanMonitor extends AManagedMonitor {
                 processMetricPrefix(config.getMetricPrefix());
 
                 status = getStatus(config, status);
-            } catch (FileNotFoundException fe) {
-                logger.error("File not found", fe);
-            } catch (IOException ioe) {
-                logger.error("IO Exception", ioe);
+            } catch (Exception e) {
+                logger.error("Exception", e);
             }
 
             return new TaskOutput(status);
@@ -89,13 +83,8 @@ public class GearmanMonitor extends AManagedMonitor {
                 gearmanServerMap.put("password", server.getPassword());
 
                 SimpleTelnetClient telnet = buildTelnetClient(gearmanServerMap);
-                telnet.connect();
-                logger.info("Got Connection to gearman server");
-                String result = telnet.sendCommand("STATUS");
-                logger.debug("Results from the server: " + result);
-                listOfMetricPerFunction = processResult(result);
-                telnet.disconnect();
-                logger.info("Disconnected from gearman server");
+                fetchAndProcessResult(telnet);
+
                 printMetric(listOfMetricPerFunction);
 
             }
@@ -106,7 +95,23 @@ public class GearmanMonitor extends AManagedMonitor {
         return status;
     }
 
+    public void fetchAndProcessResult(SimpleTelnetClient telnet) {
+        telnet.connect();
+        logger.info("Got Connection to gearman server");
+        String result = telnet.sendCommand("STATUS");
+
+        logger.debug("Results from the server: " + result);
+
+        if (!Strings.isNullOrEmpty(result)) {
+            listOfMetricPerFunction = processResult(result);
+        }
+
+        telnet.disconnect();
+        logger.info("Disconnected from gearman server");
+    }
+
     private List<GearmanMetric> processResult(String result) {
+
         listOfMetricPerFunction = new ArrayList<GearmanMetric>();
         String[] jobs = result.split("\\n");
 
@@ -127,7 +132,6 @@ public class GearmanMonitor extends AManagedMonitor {
                 listOfMetricPerFunction.add(gm);
             }
         }
-
         return listOfMetricPerFunction;
     }
 
@@ -173,9 +177,6 @@ public class GearmanMonitor extends AManagedMonitor {
                 timeRollupType,
                 clusterRollupType
         );
-
-        /*System.out.println(getLogPrefix() + "Sending [" + aggType + METRIC_SEPARATOR + timeRollupType + METRIC_SEPARATOR + clusterRollupType
-                + "] metric = " + metricPath + " = " + metricValue);*/
 
         if (logger.isDebugEnabled()) {
             logger.debug(getLogPrefix() + "Sending [" + aggType + METRIC_SEPARATOR + timeRollupType + METRIC_SEPARATOR + clusterRollupType

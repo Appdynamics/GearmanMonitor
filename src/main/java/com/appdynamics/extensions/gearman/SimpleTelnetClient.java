@@ -1,7 +1,6 @@
 package com.appdynamics.extensions.gearman;
 
 import com.google.common.base.Strings;
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import org.apache.commons.net.telnet.TelnetClient;
 import org.apache.log4j.Logger;
 
@@ -103,6 +102,8 @@ public class SimpleTelnetClient {
         }
         return null;
     }
+
+
 
     public static class Builder {
 

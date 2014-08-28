@@ -1,13 +1,16 @@
 package com.appdynamics.monitors.gearman;
 
 import com.appdynamics.extensions.gearman.GearmanMonitor;
-import com.singularity.ee.agent.systemagent.api.MetricWriter;
+import com.appdynamics.extensions.gearman.SimpleTelnetClient;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by abhi.pandey on 8/18/14.
@@ -41,5 +44,15 @@ public class GearmanMonitorTest {
         taskArgs.put(CONFIG_ARG, "src/test/resources/conf/config.yml");
         testClass.execute(taskArgs, null);
 
+    }
+
+    @Test
+    public void testGetResult(){
+        String expected = "wc\t0\t0\t2\n" +
+                "ls\t2\t0\t0\n" +
+                ".";
+        SimpleTelnetClient stc = mock(SimpleTelnetClient.class);
+        when(stc.sendCommand("STATUS")).thenReturn(expected);
+        testClass.fetchAndProcessResult(stc);
     }
 }

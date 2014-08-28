@@ -8,6 +8,9 @@ import org.junit.Test;
 
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * Created by abhi.pandey on 8/18/14.
  */
@@ -20,10 +23,11 @@ public class SimpleTelnetClientTest {
             gearmanServerMap.put("port", "4730");
             gearmanServerMap.put("user", "");
             gearmanServerMap.put("password", "");
-            SimpleTelnetClient telnet = SimpleTelnetClient.newInstance(gearmanServerMap);
+            SimpleTelnetClient telnet = mock(SimpleTelnetClient.class);
             String expected = "wc\t0\t0\t2\n" +
                     "ls\t2\t0\t0\n" +
                     ".";
+            when(telnet.sendCommand("STATUS")).thenReturn(expected);
             telnet.connect();
             String value = telnet.sendCommand("STATUS");
             Assert.assertEquals(expected, value);
