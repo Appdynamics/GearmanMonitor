@@ -38,7 +38,6 @@ public class GearmanMonitorTest {
         testClass.execute(new HashMap<String, String>(), null);
     }
 
-    @Test
     public void testGearmanMonitor() throws TaskExecutionException {
         Map<String, String> taskArgs = new HashMap();
         taskArgs.put(CONFIG_ARG, "src/test/resources/conf/config.yml");
