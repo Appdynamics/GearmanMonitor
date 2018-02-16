@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="maven-antrun-" default="main"  >
+<target name="main">
+  <mkdir dir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/GearmanMonitor/target/GearmanMonitor"/>
+  <copy todir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/GearmanMonitor/target/GearmanMonitor">
+    <fileset includes="monitor.xml" dir="src/main/resources/conf"/>
+    <fileset includes="config.yml" dir="src/main/resources/conf"/>
+  </copy>
+  <copy todir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/GearmanMonitor/target/GearmanMonitor">
+    <fileset includes="gearman-monitoring-extension.jar" dir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/GearmanMonitor/target"/>
+  </copy>
+  <zip destfile="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/GearmanMonitor/target/GearmanMonitor.zip">
+    <zipfileset prefix="GearmanMonitor/" filemode="755" dir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/GearmanMonitor/target/GearmanMonitor"/>
+  </zip>
+  <delete dir="/Users/bhuvnesh.kumar/repos/appdynamics/extensions/GearmanMonitor/target/GearmanMonitor"/>
+</target>
+</project>
